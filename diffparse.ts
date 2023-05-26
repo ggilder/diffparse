@@ -44,7 +44,7 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
       // Added line
       currentAddedLines.push(currentLineNumber);
       currentLineNumber++;
-    } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== undefined) {
+    } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== undefined && numDeletedLines !== undefined) {
       // Deleted line
       currentDeletedLines.push(currentLineNumber);
       currentLineNumber++;
@@ -84,6 +84,8 @@ function getLineInfoFromHeaderLine(line: string): { startingLineNumber: number; 
   }
   return { startingLineNumber: 0, numDeletedLines: 0 };
 }
+
+////////////////////////////////////////////////////////
 
 // Example usage
 let diffOutput = `
