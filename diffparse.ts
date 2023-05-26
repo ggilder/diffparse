@@ -36,8 +36,8 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
       // Header line
       lastHeaderLine = line;
       const { startingLineNumber, numDeletedLines } = getLineInfoFromHeaderLine(line);
-      currentLineNumber = startingLineNumber;
-      currentDeletedLines = generateLineNumbers(startingLineNumber, numDeletedLines);
+      currentLineNumber = startingLineNumber - 1;
+      currentDeletedLines = generateLineNumbers(startingLineNumber - 1, numDeletedLines);
     } else if (line.startsWith('+') && lastHeaderLine && currentLineNumber !== 0) {
       // Added line
       currentAddedLines.push(currentLineNumber);
@@ -45,7 +45,6 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
     } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== 0) {
       // Deleted line
       currentDeletedLines.push(currentLineNumber);
-      currentLineNumber++;
     } else if (!line.startsWith('-')) {
       // Context line
       currentLineNumber++;
@@ -91,7 +90,27 @@ function generateLineNumbers(startingLineNumber: number, count: number): number[
 }
 
 // Example usage
-const diffOutput = `
+let diffOutput = `
+diff --git a/composer.lock b/composer.lock
+index 610566f62..0acf50bdf 100644
+--- a/composer.lock
++++ b/composer.lock
+@@ -4,7 +4,7 @@
+         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+         "This file is @generated automatically"
+     ],
+-    "content-hash": "cc9b8800fe910fa2f9937713879fcfc6",
++    "content-hash": "e6f868483400314bb4dbd49daf927f16",
+     "packages": [
+         {
+             "name": "anik/form-request",
+`;
+
+let fileDiffs = parseGitDiff(diffOutput);
+console.log(fileDiffs);
+
+// Example usage
+diffOutput = `
 diff --git a/file1.txt b/file1.txt
 index abcdefg..1234567 100644
 --- a/file1.txt
@@ -112,6 +131,5 @@ index abcdefg..1234567 100644
 +This is a modified line
 `;
 
-const fileDiffs = parseGitDiff(diffOutput);
+fileDiffs = parseGitDiff(diffOutput);
 console.log(fileDiffs);
-
