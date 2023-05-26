@@ -12,7 +12,8 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
   let currentAddedLines: number[] = [];
   let currentDeletedLines: number[] = [];
   let lastHeaderLine: string | undefined;
-  let currentLineNumber: number = 0;
+  let currentLineNumber: number | undefined = undefined;
+  let numDeletedLines: number | undefined = undefined;
 
   for (const line of lines) {
     if (line.startsWith('diff --git')) {
@@ -31,24 +32,27 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
       currentAddedLines = [];
       currentDeletedLines = [];
       lastHeaderLine = undefined;
-      currentLineNumber = 0;
+      currentLineNumber = undefined;
+      numDeletedLines = undefined;
     } else if (line.startsWith('@@')) {
       // Header line
       lastHeaderLine = line;
-      const { startingLineNumber, numDeletedLines } = getLineInfoFromHeaderLine(line);
-      currentLineNumber = startingLineNumber - 1;
-      currentDeletedLines = generateLineNumbers(startingLineNumber - 1, numDeletedLines);
-    } else if (line.startsWith('+') && lastHeaderLine && currentLineNumber !== 0) {
+      const lineInfo = getLineInfoFromHeaderLine(line);
+      currentLineNumber = lineInfo.startingLineNumber;
+      numDeletedLines = lineInfo.numDeletedLines;
+    } else if (line.startsWith('+') && lastHeaderLine && currentLineNumber !== undefined) {
       // Added line
-      currentAddedLines.push(currentLineNumber + 1);
+      currentAddedLines.push(currentLineNumber);
       currentLineNumber++;
-    } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== 0) {
+    } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== undefined) {
       // Deleted line
-      currentDeletedLines.push(currentLineNumber + 1);
+      currentDeletedLines.push(currentLineNumber);
       currentLineNumber++;
-    } else if (!line.startsWith('-')) {
+      numDeletedLines--;
+    } else if (currentLineNumber !== undefined && numDeletedLines !== undefined) {
       // Context line
       currentLineNumber++;
+      numDeletedLines--;
     }
   }
 
@@ -79,15 +83,6 @@ function getLineInfoFromHeaderLine(line: string): { startingLineNumber: number; 
     return { startingLineNumber, numDeletedLines };
   }
   return { startingLineNumber: 0, numDeletedLines: 0 };
-}
-
-function generateLineNumbers(startingLineNumber: number, count: number): number[] {
-  // Generate an array of line numbers starting from the given startingLineNumber
-  const lineNumbers: number[] = [];
-  for (let i = startingLineNumber; i < startingLineNumber + count; i++) {
-    lineNumbers.push(i);
-  }
-  return lineNumbers;
 }
 
 // Example usage
