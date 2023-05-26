@@ -42,11 +42,11 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
       numDeletedLines = lineInfo.numDeletedLines;
     } else if (line.startsWith('+') && lastHeaderLine && currentLineNumber !== undefined) {
       // Added line
-      currentAddedLines.push(currentLineNumber);
+      currentAddedLines.push(currentLineNumber + 1);
       currentLineNumber++;
     } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== undefined && numDeletedLines !== undefined) {
       // Deleted line
-      currentDeletedLines.push(currentLineNumber);
+      currentDeletedLines.push(currentLineNumber + 1);
       currentLineNumber++;
       numDeletedLines--;
     } else if (currentLineNumber !== undefined && numDeletedLines !== undefined) {
