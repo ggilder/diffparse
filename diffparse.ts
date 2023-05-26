@@ -87,7 +87,7 @@ function getLineInfoFromHeaderLine(line: string): { startingLineNumber: number; 
 
 ////////////////////////////////////////////////////////
 
-// Example usage
+// Example 1
 let diffOutput = `
 diff --git a/composer.lock b/composer.lock
 index 610566f62..0acf50bdf 100644
@@ -107,25 +107,31 @@ index 610566f62..0acf50bdf 100644
 let fileDiffs = parseGitDiff(diffOutput);
 console.log(fileDiffs);
 
-// Example usage
+// Example 2
 diffOutput = `
 diff --git a/file1.txt b/file1.txt
 index abcdefg..1234567 100644
 --- a/file1.txt
 +++ b/file1.txt
-@@ -1,3 +1,4 @@
- This is line 1
--This is line 2
+@@ -1,4 +1,5 @@
+ This is line one
+-This is line two
 +This is a modified line
- This is line 3
- This is line 4
+ This is line three
+ This is line four
++This is an added line
+@@ -10,3 +10,5 @@
+ This is line one
++This is an added line
+ This is line two
+ This is line four
 +This is an added line
 diff --git a/file2.txt b/file2.txt
 index abcdefg..1234567 100644
 --- a/file2.txt
 +++ b/file2.txt
 @@ -1 +1 @@
--This is line 1
+-This is a line
 +This is a modified line
 `;
 
