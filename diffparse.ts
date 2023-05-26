@@ -78,7 +78,7 @@ function getLineInfoFromHeaderLine(line: string): { startingLineNumber: number; 
   // Extract the starting line number and number of deleted lines from the header line
   const matches = line.match(/\-(\d+),?(\d+)? \+(\d+),?(\d+)? @@/);
   if (matches && matches.length === 5) {
-    const startingLineNumber = parseInt(matches[3], 10);
+    const startingLineNumber = parseInt(matches[3], 10) - 1;
     const numDeletedLines = matches[4] ? parseInt(matches[4], 10) : 1;
     return { startingLineNumber, numDeletedLines };
   }
