@@ -40,11 +40,12 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
       currentDeletedLines = generateLineNumbers(startingLineNumber - 1, numDeletedLines);
     } else if (line.startsWith('+') && lastHeaderLine && currentLineNumber !== 0) {
       // Added line
-      currentAddedLines.push(currentLineNumber);
+      currentAddedLines.push(currentLineNumber + 1);
       currentLineNumber++;
     } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== 0) {
       // Deleted line
-      currentDeletedLines.push(currentLineNumber);
+      currentDeletedLines.push(currentLineNumber + 1);
+      currentLineNumber++;
     } else if (!line.startsWith('-')) {
       // Context line
       currentLineNumber++;
