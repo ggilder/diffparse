@@ -11,9 +11,9 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
   let currentFileDiff: FileDiff | undefined;
   let currentAddedLines: number[] = [];
   let currentDeletedLines: number[] = [];
-  let lastHeaderLine: string | undefined;
-  let currentLineNumber: number | undefined = undefined;
-  let numDeletedLines: number | undefined = undefined;
+  let seenHeaderLine: boolean = false;
+  let currentLineNumberA: number = 0;
+  let currentLineNumberB: number = 0;
 
   for (const line of lines) {
     if (line.startsWith('diff --git')) {
@@ -31,28 +31,25 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
       };
       currentAddedLines = [];
       currentDeletedLines = [];
-      lastHeaderLine = undefined;
-      currentLineNumber = undefined;
-      numDeletedLines = undefined;
+      seenHeaderLine = false;
     } else if (line.startsWith('@@')) {
       // Header line
-      lastHeaderLine = line;
+      seenHeaderLine = true;
       const lineInfo = getLineInfoFromHeaderLine(line);
-      currentLineNumber = lineInfo.startingLineNumber;
-      numDeletedLines = lineInfo.numDeletedLines;
-    } else if (line.startsWith('+') && lastHeaderLine && currentLineNumber !== undefined) {
+      currentLineNumberA = lineInfo.deletionStartingLineNumber;
+      currentLineNumberB = lineInfo.additionStartingLineNumber;
+    } else if (line.startsWith('+') && seenHeaderLine) {
       // Added line
-      currentAddedLines.push(currentLineNumber);
-      currentLineNumber++;
-    } else if (line.startsWith('-') && lastHeaderLine && currentLineNumber !== undefined && numDeletedLines !== undefined) {
+      currentAddedLines.push(currentLineNumberB);
+      currentLineNumberB++;
+    } else if (line.startsWith('-') && seenHeaderLine) {
       // Deleted line
-      currentDeletedLines.push(currentLineNumber);
-      currentLineNumber++;
-      numDeletedLines--;
-    } else if (currentLineNumber !== undefined && numDeletedLines !== undefined) {
+      currentDeletedLines.push(currentLineNumberA);
+      currentLineNumberA++;
+    } else if (seenHeaderLine) {
       // Context line
-      currentLineNumber++;
-      numDeletedLines--;
+      currentLineNumberA++;
+      currentLineNumberB++;
     }
   }
 
@@ -69,20 +66,20 @@ function parseGitDiff(diffOutput: string): FileDiff[] {
 function getFilenameFromDiffHeader(header: string): string {
   // Extract the filename from the diff header
   const startIndex = header.indexOf(' a/') + 3;
-  const endIndex = header.indexOf(' ', startIndex);
+  const endIndex = header.indexOf(' b/', startIndex);
   const filename = header.substring(startIndex, endIndex);
   return filename;
 }
 
-function getLineInfoFromHeaderLine(line: string): { startingLineNumber: number; numDeletedLines: number } {
-  // Extract the starting line number and number of deleted lines from the header line
+function getLineInfoFromHeaderLine(line: string): { deletionStartingLineNumber: number; additionStartingLineNumber: number } {
+  // Extract the starting line numbers for each side of the diff
   const matches = line.match(/\-(\d+),?(\d+)? \+(\d+),?(\d+)? @@/);
   if (matches && matches.length === 5) {
-    const startingLineNumber = parseInt(matches[3], 10) - 1;
-    const numDeletedLines = matches[4] ? parseInt(matches[4], 10) : 0;
-    return { startingLineNumber, numDeletedLines };
+    const deletionStartingLineNumber = parseInt(matches[1], 10);
+    const additionStartingLineNumber = parseInt(matches[3], 10);
+    return { deletionStartingLineNumber, additionStartingLineNumber };
   }
-  return { startingLineNumber: 0, numDeletedLines: 0 };
+  return { deletionStartingLineNumber: 0, additionStartingLineNumber: 0 };
 }
 
 ////////////////////////////////////////////////////////
