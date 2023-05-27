@@ -79,7 +79,7 @@ function getLineInfoFromHeaderLine(line: string): { startingLineNumber: number; 
   const matches = line.match(/\-(\d+),?(\d+)? \+(\d+),?(\d+)? @@/);
   if (matches && matches.length === 5) {
     const startingLineNumber = parseInt(matches[3], 10) - 1;
-    const numDeletedLines = matches[4] ? parseInt(matches[4], 10) : 1;
+    const numDeletedLines = matches[4] ? parseInt(matches[4], 10) : 0;
     return { startingLineNumber, numDeletedLines };
   }
   return { startingLineNumber: 0, numDeletedLines: 0 };
